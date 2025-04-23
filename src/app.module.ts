@@ -6,7 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
   imports: [
-    MongooseModule.forRoot('mongodb://localhost:27017/indexnine-booking'),
+    MongooseModule.forRoot(process.env.MONGO_URI),
     UserModule,
   ],
   controllers: [AppController],
