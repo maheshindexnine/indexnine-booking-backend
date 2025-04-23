@@ -4,7 +4,7 @@ import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-
+import { ValidationPipe, APP_PIPE } from '@nestjs/common';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -20,6 +20,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     UserModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, {
+    provide: APP_PIPE,
+    useValue: new ValidationPipe({
+      whitelist: true,
+      transform: true,
+    }),
+  }],
 })
 export class AppModule {}

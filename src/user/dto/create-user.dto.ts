@@ -1,22 +1,25 @@
-import {
-  IsEmail,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  IsInt,
-  Min,
-} from 'class-validator';
+import { IsString, IsNotEmpty, IsEmail, IsOptional, IsInt, Min, IsEnum } from 'class-validator';
+import { Exclude } from 'class-transformer';
 
 export class CreateUserDto {
-  @IsString()
-  @IsNotEmpty()
+  @IsString() @IsNotEmpty()
   name: string;
 
   @IsEmail()
   email: string;
 
-  @IsOptional()
-  @IsInt()
-  @Min(0)
+  @IsOptional() @IsInt() @Min(0)
   age?: number;
+
+  @IsString() @IsNotEmpty()
+  @Exclude()
+  password: string;
+
+  @IsOptional() @IsString()
+  phoneNo?: string;
+
+  @IsOptional()
+  @IsEnum(['user', 'admin', 'vendor'])
+  type?: 'user' | 'admin' | 'vendor';
+
 }

@@ -2,14 +2,17 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from './schemas/user.schema';
+import { CreateUserDto } from './dto/create-user.dto';
+
 
 @Injectable()
 export class UserService {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
-  async create(data: Partial<User>): Promise<User> {
-    const user = new this.userModel(data);
-    return user.save();
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    // No need to hash here — the pre('save') hook will do it for us
+    const created = new this.userModel(createUserDto);
+    return created.save();
   }
 
   async findAll(): Promise<User[]> {
