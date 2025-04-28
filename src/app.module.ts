@@ -7,6 +7,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { APP_PIPE } from '@nestjs/core';
 import { CompanyModule } from './company/company.module';
+import { EventScheduleModule } from './event-schedule/event-schedule.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -21,6 +22,7 @@ import { CompanyModule } from './company/company.module';
     }),
     UserModule,
     CompanyModule,
+    EventScheduleModule,
   ],
   controllers: [AppController],
   providers: [
