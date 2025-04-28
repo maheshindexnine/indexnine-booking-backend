@@ -9,6 +9,10 @@ import { APP_PIPE } from '@nestjs/core';
 import { CompanyModule } from './company/company.module';
 import { EventScheduleModule } from './event-schedule/event-schedule.module';
 import { EventSeatModule } from './event-seat/event-seat.module';
+import { ClientsModule, Transport } from '@nestjs/microservices';
+import { kafkaConfig } from './kafka/kafka.config';
+import { KafkaController } from './kafka/kafka.controller';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -25,8 +29,22 @@ import { EventSeatModule } from './event-seat/event-seat.module';
     CompanyModule,
     EventScheduleModule,
     EventSeatModule,
+    ClientsModule.register([
+      {
+        name: 'KAFKA_SERVICE',
+        transport: Transport.KAFKA,
+        options: {
+          client: {
+            brokers: ['localhost:9092'],
+          },
+          consumer: {
+            groupId: 'indexnine-booking-consumer',
+          },
+        },
+      },
+    ]),
   ],
-  controllers: [AppController],
+  controllers: [AppController, KafkaController],
   providers: [
     AppService,
     {
