@@ -12,11 +12,11 @@ export class CreateUserDto {
   age?: number;
 
   @IsString() @IsNotEmpty()
-  @Exclude()
+  // @Exclude()
   password: string;
 
   @IsOptional() @IsString()
-  phoneNo?: string;
+  phone?: string;
 
   @IsOptional()
   @IsEnum(['user', 'admin', 'vendor'])
