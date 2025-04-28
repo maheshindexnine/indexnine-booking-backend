@@ -11,6 +11,7 @@ import {
 import { EventSeatService } from './event-seat.service';
 import { CreateEventSeatDto } from './dto/create-event-seat.dto';
 import { UpdateEventSeatDto } from './dto/update-event-seat.dto';
+import { BookEventSeatDto } from './dto/book-event-seat.dot';
 
 @Controller('api/event-seats')
 export class EventSeatController {
@@ -19,6 +20,11 @@ export class EventSeatController {
   @Post()
   create(@Body() createDto: CreateEventSeatDto) {
     return this.eventSeatService.create(createDto);
+  }
+
+  @Post('/book')
+  bookSeat(@Body() bookDto: BookEventSeatDto) {
+    return this.eventSeatService.book(bookDto);
   }
 
   @Get()

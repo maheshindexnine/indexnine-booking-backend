@@ -27,7 +27,7 @@ export class EventSeat {
   @Prop({ required: true })
   price: number;
 
-  @Prop({ default: false })
+  @Prop({ default: false, required: false })
   booked: boolean;
 
   @Prop({ type: Date, default: Date.now })

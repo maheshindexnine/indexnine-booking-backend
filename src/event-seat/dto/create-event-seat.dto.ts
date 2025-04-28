@@ -28,7 +28,4 @@ export class CreateEventSeatDto {
 
   @IsNumber()
   price: number;
-
-  @IsBoolean()
-  booked: boolean;
 }

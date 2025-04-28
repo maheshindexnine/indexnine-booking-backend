@@ -11,6 +11,7 @@ import {
   EventScheduleDocument,
 } from '../event-schedule/schemas/event-schedule.schema';
 import { User, UserDocument } from '../user/schemas/user.schema'; // User schema
+import { BookEventSeatDto } from './dto/book-event-seat.dot';
 
 @Injectable()
 export class EventSeatService {
@@ -44,6 +45,27 @@ export class EventSeatService {
 
     const created = new this.eventSeatModel(createDto);
     return created.save();
+  }
+
+  async book(bookDto: BookEventSeatDto): Promise<EventSeat> {
+    // Check if the event seat and user exist
+    const user = await this.userModel.findById(bookDto.userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const eventSeat = await this.eventSeatModel.findById(bookDto.id);
+    if (!eventSeat) {
+      throw new NotFoundException('event seat not found');
+    }
+
+    const bookSeat = await this.eventSeatModel
+      .findByIdAndUpdate(bookDto.id, bookDto, { new: true })
+      .exec();
+    if (!bookSeat) {
+      throw new NotFoundException('Event Seat not found');
+    }
+    return bookSeat;
   }
 
   async findAll(): Promise<EventSeat[]> {
