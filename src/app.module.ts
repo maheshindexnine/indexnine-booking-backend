@@ -6,6 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { APP_PIPE } from '@nestjs/core';
+import { CompanyModule } from './company/company.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -19,6 +20,7 @@ import { APP_PIPE } from '@nestjs/core';
       }),
     }),
     UserModule,
+    CompanyModule,
   ],
   controllers: [AppController],
   providers: [
