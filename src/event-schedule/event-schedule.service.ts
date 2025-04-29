@@ -1,5 +1,9 @@
 // src/event-schedule/event-schedule.service.ts
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import {
@@ -32,6 +36,25 @@ export class EventScheduleService {
     if (!company) {
       throw new NotFoundException('Company not found');
     }
+
+    // Map user-provided seats and enrich with capacity from company
+    const enrichedSeats = createDto.seatTypes.map((userSeat) => {
+      const matchingCompanySeat = company.seats.find(
+        (companySeat) => companySeat.name === userSeat.name,
+      );
+      if (!matchingCompanySeat) {
+        throw new BadRequestException(
+          `Seat type "${userSeat.name}" not found in company`,
+        );
+      }
+      return {
+        ...userSeat,
+        capacity: matchingCompanySeat.capacity,
+      };
+    });
+
+    // Assign enriched seats back to DTO
+    (createDto as any).seatTypes = enrichedSeats;
 
     const created = new this.eventScheduleModel(createDto);
     return created.save();

@@ -19,7 +19,7 @@ export class EventSchedule {
   date: Date;
 
   @Prop({
-    type: [{ name: String, price: Number }],
+    type: [{ name: String, price: Number, capacity: Number }],
     required: true,
     validate: [(val) => val.length > 0, 'At least one seat type is required'],
   })
