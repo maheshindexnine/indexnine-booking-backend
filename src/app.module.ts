@@ -63,6 +63,7 @@ function getKafkaClientModule(): DynamicModule[] {
         transport: Transport.KAFKA,
         options: {
           client: {
+            clientId: 'indexnine-booking-client',
             brokers: [process.env.KAFKA_BROKERS || 'localhost:9092'],
           },
           consumer: {

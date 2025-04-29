@@ -1,5 +1,5 @@
 // src/event-seat/event-seat.service.ts
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { EventSeat, EventSeatDocument } from './schemas/event-seat.schema';
@@ -12,9 +12,11 @@ import {
 } from '../event-schedule/schemas/event-schedule.schema';
 import { User, UserDocument } from '../user/schemas/user.schema'; // User schema
 import { BookEventSeatDto } from './dto/book-event-seat.dot';
+import { ClientKafka, Payload } from '@nestjs/microservices';
 
 @Injectable()
 export class EventSeatService {
+  private readonly enableKafka: boolean;
   constructor(
     @InjectModel(EventSeat.name)
     private eventSeatModel: Model<EventSeatDocument>,
@@ -22,7 +24,73 @@ export class EventSeatService {
     @InjectModel(EventSchedule.name)
     private eventScheduleModel: Model<EventScheduleDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
-  ) {}
+    @Inject('KAFKA_SERVICE') private readonly kafkaClient: ClientKafka,
+  ) {
+    this.enableKafka = process.env.ENABLE_KAFKA === 'true';
+  }
+
+  async handleCreateSeats(@Payload() message: any): Promise<void> {
+    console.log('called seats consumers');
+
+    const { eventScheduleId, vendorId, companyId, seats } = message;
+
+    // Loop through the seat types and create individual seat creation messages
+    for (const seatType of seats) {
+      for (let i = 1; i <= seatType.capacity; i++) {
+        const seatDto: CreateEventSeatDto = {
+          vendorId,
+          companyId,
+          eventScheduleId,
+          seatNo: i.toString(),
+          seatName: seatType.name,
+          price: seatType.price,
+        };
+        console.log('for each dto');
+
+        // Send a Kafka message to create this individual seat
+        await this.sendSeatCreationMessage(seatDto);
+      }
+    }
+  }
+
+  // Send a Kafka message to create an individual seat
+  private async sendSeatCreationMessage(
+    seatDto: CreateEventSeatDto,
+  ): Promise<void> {
+    const message = {
+      vendorId: seatDto.vendorId,
+      companyId: seatDto.companyId,
+      eventScheduleId: seatDto.eventScheduleId,
+      seatNo: seatDto.seatNo,
+      seatName: seatDto.seatName,
+      price: seatDto.price,
+    };
+
+    // Send the message to Kafka's 'create-seat' topic
+    await this.kafkaClient.emit('create-seat', message);
+  }
+
+  async handleSeatCreation(message: any): Promise<void> {
+    const { vendorId, companyId, eventScheduleId, seatNo, seatName, price } =
+      message;
+
+    const seatDto: CreateEventSeatDto = {
+      vendorId,
+      companyId,
+      eventScheduleId,
+      seatNo,
+      seatName,
+      price,
+    };
+
+    // Create the seat in the database
+    const createdSeat = new this.eventSeatModel(seatDto);
+    await createdSeat.save();
+
+    console.log(
+      `Seat created: ${seatNo} for EventSchedule ID: ${eventScheduleId}`,
+    );
+  }
 
   async create(createDto: CreateEventSeatDto): Promise<EventSeat> {
     // Check if the vendor, company, eventSchedule, and user exist

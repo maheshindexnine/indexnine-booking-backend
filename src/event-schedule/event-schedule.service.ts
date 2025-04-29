@@ -1,6 +1,7 @@
 // src/event-schedule/event-schedule.service.ts
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -14,6 +15,10 @@ import { CreateEventScheduleDto } from './dto/create-event-schedule.dto';
 import { UpdateEventScheduleDto } from './dto/update-event-schedule.dto';
 import { User, UserDocument } from '../user/schemas/user.schema'; // User schema
 import { Company, CompanyDocument } from '../company/schemas/company.schema'; // Company schema
+import { CreateEventSeatDto } from 'src/event-seat/dto/create-event-seat.dto';
+import { EventSeatService } from 'src/event-seat/event-seat.service';
+import { ClientKafka } from '@nestjs/microservices';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class EventScheduleService {
@@ -22,6 +27,9 @@ export class EventScheduleService {
     private eventScheduleModel: Model<EventScheduleDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(Company.name) private companyModel: Model<CompanyDocument>,
+    private eventSeatService: EventSeatService,
+    @Inject('KAFKA_SERVICE') private readonly kafkaClient: ClientKafka,
+    private readonly configService: ConfigService,
   ) {}
 
   async create(createDto: CreateEventScheduleDto): Promise<EventSchedule> {
@@ -57,7 +65,60 @@ export class EventScheduleService {
     (createDto as any).seatTypes = enrichedSeats;
 
     const created = new this.eventScheduleModel(createDto);
-    return created.save();
+    const savedEvent = await created.save();
+
+    // create seats
+    const enableKafka =
+      this.configService.get<string>('ENABLE_KAFKA') === 'true';
+
+    if (enableKafka) {
+      await this.sendSeatsCreationMessage(savedEvent, enrichedSeats);
+    } else {
+      await this.createSeatsForEvent(enrichedSeats, savedEvent);
+    }
+
+    return savedEvent;
+  }
+
+  // Function to send the message to Kafka
+  private async sendSeatsCreationMessage(
+    savedEvent: EventSchedule,
+    enrichedSeats: any[],
+  ): Promise<void> {
+    const message = {
+      // @ts-ignore
+      eventScheduleId: savedEvent._id.toString(),
+      vendorId: savedEvent.userId.toString(),
+      companyId: savedEvent.companyId.toString(),
+      seats: enrichedSeats,
+    };
+    console.log('called here start', message);
+
+    // Send the message to Kafka's 'create-seats' topic
+    await this.kafkaClient.emit('create-seats', message);
+  }
+
+  // Function to create seats asynchronously
+  private async createSeatsForEvent(
+    seatTypes: any[],
+    savedEvent: EventSchedule,
+  ): Promise<void> {
+    for (const seatType of seatTypes) {
+      for (let i = 1; i <= seatType.capacity; i++) {
+        const seatDto: CreateEventSeatDto = {
+          vendorId: savedEvent.userId.toString(),
+          companyId: savedEvent.companyId.toString(),
+          // @ts-ignore
+          eventScheduleId: savedEvent._id.toString(),
+          seatNo: i.toString(),
+          seatName: seatType.name,
+          price: seatType.price,
+        };
+
+        // Create the seat asynchronously without awaiting
+        this.eventSeatService.create(seatDto); // This does not block the execution
+      }
+    }
   }
 
   async findAll(): Promise<EventSchedule[]> {
