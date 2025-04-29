@@ -1,22 +1,21 @@
-import { Module } from '@nestjs/common';
+import { Module, DynamicModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
+import { CompanyModule } from './company/company.module';
+import { EventScheduleModule } from './event-schedule/event-schedule.module';
+import { EventSeatModule } from './event-seat/event-seat.module';
+import { KafkaController } from './kafka/kafka.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { APP_PIPE } from '@nestjs/core';
-import { CompanyModule } from './company/company.module';
-import { EventScheduleModule } from './event-schedule/event-schedule.module';
-import { EventSeatModule } from './event-seat/event-seat.module';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { kafkaConfig } from './kafka/kafka.config';
-import { KafkaController } from './kafka/kafka.controller';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true, // Makes env config available everywhere
+      isGlobal: true,
     }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
@@ -25,26 +24,16 @@ import { KafkaController } from './kafka/kafka.controller';
         uri: configService.get<string>('MONGO_URI'),
       }),
     }),
+    ...getKafkaClientModule(),
     UserModule,
     CompanyModule,
     EventScheduleModule,
     EventSeatModule,
-    ClientsModule.register([
-      {
-        name: 'KAFKA_SERVICE',
-        transport: Transport.KAFKA,
-        options: {
-          client: {
-            brokers: ['localhost:9092'],
-          },
-          consumer: {
-            groupId: 'indexnine-booking-consumer',
-          },
-        },
-      },
-    ]),
   ],
-  controllers: [AppController, KafkaController],
+  controllers: [
+    AppController,
+    ...(process.env.ENABLE_KAFKA === 'true' ? [KafkaController] : []),
+  ],
   providers: [
     AppService,
     {
@@ -57,3 +46,30 @@ import { KafkaController } from './kafka/kafka.controller';
   ],
 })
 export class AppModule {}
+
+function getKafkaClientModule(): DynamicModule[] {
+  const enableKafka = process.env.ENABLE_KAFKA === 'true';
+
+  if (!enableKafka) {
+    console.log('❌ Kafka is disabled.');
+    return [];
+  }
+
+  console.log('✅ Kafka is enabled.');
+  return [
+    ClientsModule.register([
+      {
+        name: 'KAFKA_SERVICE',
+        transport: Transport.KAFKA,
+        options: {
+          client: {
+            brokers: [process.env.KAFKA_BROKERS || 'localhost:9092'],
+          },
+          consumer: {
+            groupId: process.env.KAFKA_GROUP_ID || 'indexnine-booking-consumer',
+          },
+        },
+      },
+    ]),
+  ];
+}

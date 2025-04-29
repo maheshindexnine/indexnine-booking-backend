@@ -7,11 +7,11 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 export class KafkaController {
   @MessagePattern('test-topic')
   handleTestTopic(@Payload() message: any) {
-    console.log('✅ Received from Kafka:', message.value);
+    console.log('✅ Received from Kafka:', message);
 
     return {
       ack: true,
-      receivedMessage: message.value,
+      receivedMessage: message,
       reply: 'Successfully processed',
     };
   }
