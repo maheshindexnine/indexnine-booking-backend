@@ -1,4 +1,4 @@
-import { Module, DynamicModule } from '@nestjs/common';
+import { Module, DynamicModule, Provider } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
@@ -11,6 +11,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { APP_PIPE } from '@nestjs/core';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { KafkaMockClient } from './kafka/kafka.mock';
+import { getKafkaClientModule } from './kafka/kafka-client.util';
 
 @Module({
   imports: [
@@ -46,31 +48,3 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
   ],
 })
 export class AppModule {}
-
-function getKafkaClientModule(): DynamicModule[] {
-  const enableKafka = process.env.ENABLE_KAFKA === 'true';
-
-  if (!enableKafka) {
-    console.log('❌ Kafka is disabled.');
-    return [];
-  }
-
-  console.log('✅ Kafka is enabled.');
-  return [
-    ClientsModule.register([
-      {
-        name: 'KAFKA_SERVICE',
-        transport: Transport.KAFKA,
-        options: {
-          client: {
-            clientId: 'indexnine-booking-client',
-            brokers: [process.env.KAFKA_BROKERS || 'localhost:9092'],
-          },
-          consumer: {
-            groupId: process.env.KAFKA_GROUP_ID || 'indexnine-booking-consumer',
-          },
-        },
-      },
-    ]),
-  ];
-}
