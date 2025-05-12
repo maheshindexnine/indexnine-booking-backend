@@ -22,5 +22,17 @@ export class CreateEventDto {
 
   @IsString()
   @IsNotEmpty()
+  genre: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  rating: number;
+
+  @IsString()
+  @IsNotEmpty()
+  duration: string;
+
+  @IsString()
+  @IsNotEmpty()
   type: string;
 }

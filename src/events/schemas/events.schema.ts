@@ -14,6 +14,15 @@ export class Event {
   @Prop()
   description: string;
 
+  @Prop()
+  genre: string;
+
+  @Prop()
+  rating: number;
+
+  @Prop()
+  duration: string;
+
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   userId: Types.ObjectId;
 }
