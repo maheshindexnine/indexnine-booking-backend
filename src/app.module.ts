@@ -13,6 +13,7 @@ import { APP_PIPE } from '@nestjs/core';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { KafkaMockClient } from './kafka/kafka.mock';
 import { getKafkaClientModule } from './kafka/kafka-client.util';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { getKafkaClientModule } from './kafka/kafka-client.util';
     CompanyModule,
     EventScheduleModule,
     EventSeatModule,
+    EventsModule,
   ],
   controllers: [
     AppController,
