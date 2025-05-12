@@ -7,12 +7,14 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { EventSeatService } from './event-seat.service';
 import { CreateEventSeatDto } from './dto/create-event-seat.dto';
 import { UpdateEventSeatDto } from './dto/update-event-seat.dto';
 import { BookEventSeatDto } from './dto/book-event-seat.dot';
 import { MessagePattern, Payload } from '@nestjs/microservices';
+import { EventSeatQueryDto } from './dto/event-seat-query.dto';
 
 @Controller('api/event-seats')
 export class EventSeatController {
@@ -30,8 +32,8 @@ export class EventSeatController {
   }
 
   @Get()
-  findAll() {
-    return this.eventSeatService.findAll();
+  findAll(@Query() query: EventSeatQueryDto) {
+    return this.eventSeatService.findAll(query);
   }
 
   @Get(':id')

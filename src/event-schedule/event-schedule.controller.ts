@@ -7,10 +7,12 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { EventScheduleService } from './event-schedule.service';
 import { CreateEventScheduleDto } from './dto/create-event-schedule.dto';
 import { UpdateEventScheduleDto } from './dto/update-event-schedule.dto';
+import { EventScheduleQueryDto } from './dto/event-schedule-query.dto';
 
 @Controller('api/event-schedules')
 export class EventScheduleController {
@@ -22,8 +24,8 @@ export class EventScheduleController {
   }
 
   @Get()
-  findAll() {
-    return this.eventScheduleService.findAll();
+  findAll(@Query() query: EventScheduleQueryDto) {
+    return this.eventScheduleService.findAll(query);
   }
 
   @Get(':id')

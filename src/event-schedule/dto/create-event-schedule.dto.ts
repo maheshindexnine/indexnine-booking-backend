@@ -26,9 +26,8 @@ export class CreateEventScheduleDto {
   @IsMongoId()
   companyId: string;
 
-  @IsString()
-  @IsNotEmpty()
-  name: string;
+  @IsMongoId()
+  eventId: string;
 
   @IsDateString()
   date: string;

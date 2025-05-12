@@ -17,6 +17,9 @@ export class CreateEventSeatDto {
 
   @IsMongoId()
   eventScheduleId: string;
+  
+  @IsMongoId()
+  eventId: string;
 
   @IsString()
   @IsNotEmpty()

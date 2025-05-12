@@ -13,6 +13,7 @@ import {
 import { User, UserDocument } from '../user/schemas/user.schema'; // User schema
 import { BookEventSeatDto } from './dto/book-event-seat.dot';
 import { ClientKafka, Payload } from '@nestjs/microservices';
+import { EventSeatQueryDto } from './dto/event-seat-query.dto';
 
 @Injectable()
 export class EventSeatService {
@@ -32,7 +33,7 @@ export class EventSeatService {
   async handleCreateSeats(@Payload() message: any): Promise<void> {
     console.log('called seats consumers');
 
-    const { eventScheduleId, vendorId, companyId, seats } = message;
+    const { eventScheduleId, vendorId, companyId, seats, eventId } = message;
 
     // Loop through the seat types and create individual seat creation messages
     for (const seatType of seats) {
@@ -41,6 +42,7 @@ export class EventSeatService {
           vendorId,
           companyId,
           eventScheduleId,
+          eventId,
           seatNo: i.toString(),
           seatName: seatType.name,
           price: seatType.price,
@@ -71,13 +73,21 @@ export class EventSeatService {
   }
 
   async handleSeatCreation(message: any): Promise<void> {
-    const { vendorId, companyId, eventScheduleId, seatNo, seatName, price } =
-      message;
+    const {
+      vendorId,
+      companyId,
+      eventScheduleId,
+      seatNo,
+      seatName,
+      price,
+      eventId,
+    } = message;
 
     const seatDto: CreateEventSeatDto = {
       vendorId,
       companyId,
       eventScheduleId,
+      eventId,
       seatNo,
       seatName,
       price,
@@ -136,11 +146,14 @@ export class EventSeatService {
     return bookSeat;
   }
 
-  async findAll(): Promise<EventSeat[]> {
-    return this.eventSeatModel
-      .find()
-      .populate('userId companyId eventScheduleId userId')
-      .exec();
+  async findAll(filterDto: EventSeatQueryDto): Promise<EventSeat[]> {
+    const filter: Record<string, any> = {};
+    for (const key in filterDto) {
+      if (filterDto[key] !== undefined) {
+        filter[key] = filterDto[key];
+      }
+    }
+    return this.eventSeatModel.find().exec();
   }
 
   async findOne(id: string): Promise<EventSeat> {

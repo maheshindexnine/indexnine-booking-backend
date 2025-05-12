@@ -19,6 +19,7 @@ import { CreateEventSeatDto } from 'src/event-seat/dto/create-event-seat.dto';
 import { EventSeatService } from 'src/event-seat/event-seat.service';
 import { ClientKafka } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
+import { EventScheduleQueryDto } from './dto/event-schedule-query.dto';
 
 @Injectable()
 export class EventScheduleService {
@@ -85,11 +86,14 @@ export class EventScheduleService {
     savedEvent: EventSchedule,
     enrichedSeats: any[],
   ): Promise<void> {
+    console.log(savedEvent, ' savedEventsavedEventsavedEventsavedEvent');
+
     const message = {
       // @ts-ignore
       eventScheduleId: savedEvent._id.toString(),
       vendorId: savedEvent.userId.toString(),
       companyId: savedEvent.companyId.toString(),
+      eventId: savedEvent.eventId.toString(),
       seats: enrichedSeats,
     };
     console.log('called here start', message);
@@ -110,6 +114,7 @@ export class EventScheduleService {
           companyId: savedEvent.companyId.toString(),
           // @ts-ignore
           eventScheduleId: savedEvent._id.toString(),
+          eventId: savedEvent.eventId.toString(),
           seatNo: i.toString(),
           seatName: seatType.name,
           price: seatType.price,
@@ -121,8 +126,17 @@ export class EventScheduleService {
     }
   }
 
-  async findAll(): Promise<EventSchedule[]> {
-    return this.eventScheduleModel.find().populate('userId companyId').exec();
+  async findAll(filterDto: EventScheduleQueryDto): Promise<EventSchedule[]> {
+    const filter: Record<string, any> = {};
+    for (const key in filterDto) {
+      if (filterDto[key] !== undefined) {
+        filter[key] = filterDto[key];
+      }
+    }
+    return this.eventScheduleModel
+      .find(filter)
+      .populate('eventId companyId')
+      .exec();
   }
 
   async findOne(id: string): Promise<EventSchedule> {

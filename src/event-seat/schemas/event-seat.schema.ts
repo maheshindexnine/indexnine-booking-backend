@@ -15,6 +15,9 @@ export class EventSeat {
   @Prop({ type: Types.ObjectId, ref: 'EventSchedule', required: true })
   eventScheduleId: Types.ObjectId;
 
+  @Prop({ type: Types.ObjectId, ref: 'Event', required: true })
+  eventId: Types.ObjectId;
+
   @Prop({ type: Types.ObjectId, ref: 'User', required: false })
   userId: Types.ObjectId;
 

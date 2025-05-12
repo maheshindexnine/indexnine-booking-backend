@@ -12,8 +12,8 @@ export class EventSchedule {
   @Prop({ type: Types.ObjectId, ref: 'Company', required: true })
   companyId: Types.ObjectId;
 
-  @Prop({ required: true })
-  name: string;
+  @Prop({ type: Types.ObjectId, ref: 'Event', required: true })
+  eventId: Types.ObjectId;
 
   @Prop({ required: true })
   date: Date;
