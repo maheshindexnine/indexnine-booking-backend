@@ -6,12 +6,10 @@ import {
   IsBoolean,
   IsNumber,
   IsOptional,
+  IsArray,
 } from 'class-validator';
 
 export class CreateEventDto {
-  @IsMongoId()
-  userId: string;
-
   @IsString()
   @IsNotEmpty()
   name: string;
@@ -20,19 +18,23 @@ export class CreateEventDto {
   @IsNotEmpty()
   description: string;
 
-  @IsString()
+  @IsArray()
   @IsNotEmpty()
-  genre: string;
+  genre: string[];
 
   @IsNumber()
   @IsNotEmpty()
   rating: number;
 
-  @IsString()
   @IsNotEmpty()
-  duration: string;
+  @IsNotEmpty()
+  duration: number;
 
   @IsString()
   @IsNotEmpty()
   type: string;
+
+  @IsString()
+  @IsNotEmpty()
+  image: string;
 }

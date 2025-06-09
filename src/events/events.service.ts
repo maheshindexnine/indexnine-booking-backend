@@ -6,6 +6,7 @@ import { Event, EventDocument, EventSchema } from './schemas/events.schema';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { User, UserDocument } from '../user/schemas/user.schema'; // User schema
+import { RequestWithUser } from 'src/common/interfaces/request-with-user.interface';
 
 @Injectable()
 export class EventService {
@@ -15,13 +16,14 @@ export class EventService {
     @InjectModel(User.name) private userModel: Model<UserDocument>,
   ) {}
 
-  async create(createDto: CreateEventDto): Promise<Event> {
-    // Check if the user exist
-    const user = await this.userModel.findById(createDto.userId);
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-    const created = new this.eventModel(createDto);
+  async create(
+    createDto: CreateEventDto,
+    req: RequestWithUser,
+  ): Promise<Event> {
+    const created = new this.eventModel({
+      ...createDto,
+      userId: req.user.userId,
+    });
     return created.save();
   }
 

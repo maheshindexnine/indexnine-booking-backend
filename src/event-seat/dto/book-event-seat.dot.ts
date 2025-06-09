@@ -12,9 +12,6 @@ export class BookEventSeatDto {
   @IsMongoId()
   id: string;
 
-  @IsMongoId()
-  userId: string;
-
   @IsBoolean()
   booked: boolean;
 }

@@ -27,6 +27,10 @@ export class CreateEventSeatDto {
 
   @IsString()
   @IsNotEmpty()
+  row: string;
+
+  @IsString()
+  @IsNotEmpty()
   seatName: string;
 
   @IsNumber()

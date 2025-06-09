@@ -14,6 +14,9 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { KafkaMockClient } from './kafka/kafka.mock';
 import { getKafkaClientModule } from './kafka/kafka-client.util';
 import { EventsModule } from './events/events.module';
+import { AuthController } from './auth/auth.controller';
+import { AuthService } from './auth/auth.service';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -33,10 +36,12 @@ import { EventsModule } from './events/events.module';
     EventScheduleModule,
     EventSeatModule,
     EventsModule,
+    AuthModule,
   ],
   controllers: [
     AppController,
     ...(process.env.ENABLE_KAFKA === 'true' ? [KafkaController] : []),
+    AuthController,
   ],
   providers: [
     AppService,
@@ -47,6 +52,7 @@ import { EventsModule } from './events/events.module';
         transform: true,
       }),
     },
+    AuthService,
   ],
 })
 export class AppModule {}

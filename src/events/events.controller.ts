@@ -7,20 +7,25 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { EventService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { MessagePattern, Payload } from '@nestjs/microservices';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { RequestWithUser } from 'src/common/interfaces/request-with-user.interface';
 
 @Controller('api/event')
 export class EventsController {
   constructor(private readonly eventService: EventService) {}
 
   // http controllers
+  @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createDto: CreateEventDto) {
-    return this.eventService.create(createDto);
+  create(@Body() createDto: CreateEventDto, @Req() req: RequestWithUser) {
+    return this.eventService.create(createDto, req);
   }
 
   @Get()

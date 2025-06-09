@@ -14,6 +14,7 @@ import { User, UserDocument } from '../user/schemas/user.schema'; // User schema
 import { BookEventSeatDto } from './dto/book-event-seat.dot';
 import { ClientKafka, Payload } from '@nestjs/microservices';
 import { EventSeatQueryDto } from './dto/event-seat-query.dto';
+import { RequestWithUser } from 'src/common/interfaces/request-with-user.interface';
 
 @Injectable()
 export class EventSeatService {
@@ -31,13 +32,14 @@ export class EventSeatService {
   }
 
   async handleCreateSeats(@Payload() message: any): Promise<void> {
-    console.log('called seats consumers');
-
     const { eventScheduleId, vendorId, companyId, seats, eventId } = message;
 
     // Loop through the seat types and create individual seat creation messages
     for (const seatType of seats) {
       for (let i = 1; i <= seatType.capacity; i++) {
+        const rowIndex = Math.floor((i - 1) / 10); // 0 for 1–10, 1 for 11–20, etc.
+        const rowKey = String.fromCharCode(65 + rowIndex); // 65 is 'A'
+
         const seatDto: CreateEventSeatDto = {
           vendorId,
           companyId,
@@ -46,8 +48,8 @@ export class EventSeatService {
           seatNo: i.toString(),
           seatName: seatType.name,
           price: seatType.price,
+          row: rowKey,
         };
-        console.log('for each dto');
 
         // Send a Kafka message to create this individual seat
         await this.sendSeatCreationMessage(seatDto);
@@ -81,6 +83,7 @@ export class EventSeatService {
       seatName,
       price,
       eventId,
+      row,
     } = message;
 
     const seatDto: CreateEventSeatDto = {
@@ -90,6 +93,7 @@ export class EventSeatService {
       eventId,
       seatNo,
       seatName,
+      row,
       price,
     };
 
@@ -125,20 +129,21 @@ export class EventSeatService {
     return created.save();
   }
 
-  async book(bookDto: BookEventSeatDto): Promise<EventSeat> {
-    // Check if the event seat and user exist
-    const user = await this.userModel.findById(bookDto.userId);
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
+  async book(
+    bookDto: BookEventSeatDto,
+    req: RequestWithUser,
+  ): Promise<EventSeat> {
     const eventSeat = await this.eventSeatModel.findById(bookDto.id);
     if (!eventSeat) {
       throw new NotFoundException('event seat not found');
     }
 
     const bookSeat = await this.eventSeatModel
-      .findByIdAndUpdate(bookDto.id, bookDto, { new: true })
+      .findByIdAndUpdate(
+        bookDto.id,
+        { ...bookDto, userId: req.user.userId },
+        { new: true },
+      )
       .exec();
     if (!bookSeat) {
       throw new NotFoundException('Event Seat not found');
@@ -153,7 +158,9 @@ export class EventSeatService {
         filter[key] = filterDto[key];
       }
     }
-    return this.eventSeatModel.find().exec();
+    console.log(filter, ' mahesh hasdhsdajs');
+
+    return this.eventSeatModel.find(filter).exec();
   }
 
   async findOne(id: string): Promise<EventSeat> {

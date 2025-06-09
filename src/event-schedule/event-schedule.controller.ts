@@ -8,24 +8,30 @@ import {
   Param,
   Delete,
   Query,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { EventScheduleService } from './event-schedule.service';
 import { CreateEventScheduleDto } from './dto/create-event-schedule.dto';
 import { UpdateEventScheduleDto } from './dto/update-event-schedule.dto';
 import { EventScheduleQueryDto } from './dto/event-schedule-query.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { RequestWithUser } from 'src/common/interfaces/request-with-user.interface';
 
 @Controller('api/event-schedules')
 export class EventScheduleController {
   constructor(private readonly eventScheduleService: EventScheduleService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createDto: CreateEventScheduleDto) {
-    return this.eventScheduleService.create(createDto);
+  create(@Body() createDto: CreateEventScheduleDto, @Req() req: RequestWithUser) {
+    return this.eventScheduleService.create(createDto, req);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
-  findAll(@Query() query: EventScheduleQueryDto) {
-    return this.eventScheduleService.findAll(query);
+  findAll(@Query() query: EventScheduleQueryDto, @Req() req: RequestWithUser) {
+    return this.eventScheduleService.findAll(query, req);
   }
 
   @Get(':id')

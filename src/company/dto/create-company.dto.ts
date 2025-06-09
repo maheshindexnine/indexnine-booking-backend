@@ -22,10 +22,6 @@ class SeatDto {
 
 export class CreateCompanyDto {
   @IsNotEmpty()
-  @IsMongoId()
-  userId: string;
-
-  @IsNotEmpty()
   @IsString()
   name: string;
 

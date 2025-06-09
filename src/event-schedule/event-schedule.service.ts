@@ -20,6 +20,7 @@ import { EventSeatService } from 'src/event-seat/event-seat.service';
 import { ClientKafka } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 import { EventScheduleQueryDto } from './dto/event-schedule-query.dto';
+import { RequestWithUser } from 'src/common/interfaces/request-with-user.interface';
 
 @Injectable()
 export class EventScheduleService {
@@ -33,13 +34,10 @@ export class EventScheduleService {
     private readonly configService: ConfigService,
   ) {}
 
-  async create(createDto: CreateEventScheduleDto): Promise<EventSchedule> {
-    // Check if user exists
-    const user = await this.userModel.findById(createDto.userId);
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
+  async create(
+    createDto: CreateEventScheduleDto,
+    req: RequestWithUser,
+  ): Promise<EventSchedule> {
     // Check if company exists
     const company = await this.companyModel.findById(createDto.companyId);
     if (!company) {
@@ -65,7 +63,10 @@ export class EventScheduleService {
     // Assign enriched seats back to DTO
     (createDto as any).seatTypes = enrichedSeats;
 
-    const created = new this.eventScheduleModel(createDto);
+    const created = new this.eventScheduleModel({
+      ...createDto,
+      userId: req.user.userId,
+    });
     const savedEvent = await created.save();
 
     // create seats
@@ -109,6 +110,9 @@ export class EventScheduleService {
   ): Promise<void> {
     for (const seatType of seatTypes) {
       for (let i = 1; i <= seatType.capacity; i++) {
+        const rowIndex = Math.floor((i - 1) / 10); // 0 for 1–10, 1 for 11–20, etc.
+        const rowKey = String.fromCharCode(65 + rowIndex); // 65 is 'A'
+
         const seatDto: CreateEventSeatDto = {
           vendorId: savedEvent.userId.toString(),
           companyId: savedEvent.companyId.toString(),
@@ -118,6 +122,7 @@ export class EventScheduleService {
           seatNo: i.toString(),
           seatName: seatType.name,
           price: seatType.price,
+          row: rowKey, // ✅ added row key
         };
 
         // Create the seat asynchronously without awaiting
@@ -126,13 +131,26 @@ export class EventScheduleService {
     }
   }
 
-  async findAll(filterDto: EventScheduleQueryDto): Promise<EventSchedule[]> {
+  async findAll(
+    filterDto: EventScheduleQueryDto,
+    req: RequestWithUser,
+  ): Promise<EventSchedule[]> {
     const filter: Record<string, any> = {};
     for (const key in filterDto) {
       if (filterDto[key] !== undefined) {
-        filter[key] = filterDto[key];
+        // Special handling for date to ignore time
+        if (key === 'date') {
+          const date = new Date(filterDto[key]);
+          filter[key] = {
+            $gte: new Date(date.setHours(0, 0, 0, 0)),
+            $lt: new Date(date.setHours(23, 59, 59, 999)),
+          };
+        } else {
+          filter[key] = filterDto[key];
+        }
       }
     }
+
     return this.eventScheduleModel
       .find(filter)
       .populate('eventId companyId')

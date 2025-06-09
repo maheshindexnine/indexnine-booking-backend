@@ -25,6 +25,9 @@ export class EventSeat {
   seatNo: string;
 
   @Prop({ required: true })
+  row: string;
+
+  @Prop({ required: true })
   seatName: string;
 
   @Prop({ required: true })

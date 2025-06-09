@@ -21,9 +21,6 @@ class SeatTypeDto {
 
 export class CreateEventScheduleDto {
   @IsMongoId()
-  userId: string;
-
-  @IsMongoId()
   companyId: string;
 
   @IsMongoId()

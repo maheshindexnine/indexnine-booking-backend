@@ -8,6 +8,8 @@ import {
   Param,
   Delete,
   Query,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { EventSeatService } from './event-seat.service';
 import { CreateEventSeatDto } from './dto/create-event-seat.dto';
@@ -15,6 +17,8 @@ import { UpdateEventSeatDto } from './dto/update-event-seat.dto';
 import { BookEventSeatDto } from './dto/book-event-seat.dot';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { EventSeatQueryDto } from './dto/event-seat-query.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { RequestWithUser } from 'src/common/interfaces/request-with-user.interface';
 
 @Controller('api/event-seats')
 export class EventSeatController {
@@ -26,9 +30,10 @@ export class EventSeatController {
     return this.eventSeatService.create(createDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('/book')
-  bookSeat(@Body() bookDto: BookEventSeatDto) {
-    return this.eventSeatService.book(bookDto);
+  bookSeat(@Body() bookDto: BookEventSeatDto, @Req() req: RequestWithUser) {
+    return this.eventSeatService.book(bookDto, req);
   }
 
   @Get()
