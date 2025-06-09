@@ -24,14 +24,25 @@ export class EventScheduleController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createDto: CreateEventScheduleDto, @Req() req: RequestWithUser) {
+  create(
+    @Body() createDto: CreateEventScheduleDto,
+    @Req() req: RequestWithUser,
+  ) {
     return this.eventScheduleService.create(createDto, req);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get()
-  findAll(@Query() query: EventScheduleQueryDto, @Req() req: RequestWithUser) {
-    return this.eventScheduleService.findAll(query, req);
+  findAll(@Query() query: EventScheduleQueryDto) {
+    return this.eventScheduleService.findAll(query);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/vendor')
+  findAllByVendor(
+    @Query() query: EventScheduleQueryDto,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.eventScheduleService.findAllByVendor(query, req);
   }
 
   @Get(':id')

@@ -131,7 +131,30 @@ export class EventScheduleService {
     }
   }
 
-  async findAll(
+  async findAll(filterDto: EventScheduleQueryDto): Promise<EventSchedule[]> {
+    const filter: Record<string, any> = {};
+    for (const key in filterDto) {
+      if (filterDto[key] !== undefined) {
+        // Special handling for date to ignore time
+        if (key === 'date') {
+          const date = new Date(filterDto[key]);
+          filter[key] = {
+            $gte: new Date(date.setHours(0, 0, 0, 0)),
+            $lt: new Date(date.setHours(23, 59, 59, 999)),
+          };
+        } else {
+          filter[key] = filterDto[key];
+        }
+      }
+    }
+
+    return this.eventScheduleModel
+      .find({ ...filter })
+      .populate('eventId companyId')
+      .exec();
+  }
+
+  async findAllByVendor(
     filterDto: EventScheduleQueryDto,
     req: RequestWithUser,
   ): Promise<EventSchedule[]> {
@@ -152,7 +175,7 @@ export class EventScheduleService {
     }
 
     return this.eventScheduleModel
-      .find(filter)
+      .find({ ...filter, userId: req.user.userId })
       .populate('eventId companyId')
       .exec();
   }
