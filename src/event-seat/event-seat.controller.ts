@@ -41,6 +41,12 @@ export class EventSeatController {
     return this.eventSeatService.findAll(query);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('/get-bookings')
+  getBookings(@Query() query: EventSeatQueryDto, @Req() req: RequestWithUser) {
+    return this.eventSeatService.getBookings(query, req);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.eventSeatService.findOne(id);

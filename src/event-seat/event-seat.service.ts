@@ -158,9 +158,17 @@ export class EventSeatService {
         filter[key] = filterDto[key];
       }
     }
-    console.log(filter, ' mahesh hasdhsdajs');
-
     return this.eventSeatModel.find(filter).exec();
+  }
+
+  async getBookings(filterDto: EventSeatQueryDto, req: RequestWithUser): Promise<EventSeat[]> {
+    const filter: Record<string, any> = {};
+    for (const key in filterDto) {
+      if (filterDto[key] !== undefined) {
+        filter[key] = filterDto[key];
+      }
+    }
+    return this.eventSeatModel.find({ ...filter, userId: req.user.userId }).populate('companyId eventScheduleId eventId').exec();
   }
 
   async findOne(id: string): Promise<EventSeat> {
