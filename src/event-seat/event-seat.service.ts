@@ -133,22 +133,19 @@ export class EventSeatService {
     bookDto: BookEventSeatDto,
     req: RequestWithUser,
   ): Promise<EventSeat> {
-    const eventSeat = await this.eventSeatModel.findById(bookDto.id);
-    if (!eventSeat) {
-      throw new NotFoundException('event seat not found');
-    }
+    const operations = bookDto.ids.map((id) => ({
+      updateOne: {
+        filter: { _id: id },
+        update: { $set: { userId: req.user.userId, booked: true } },
+      },
+    }));
 
-    const bookSeat = await this.eventSeatModel
-      .findByIdAndUpdate(
-        bookDto.id,
-        { ...bookDto, userId: req.user.userId },
-        { new: true },
-      )
-      .exec();
-    if (!bookSeat) {
-      throw new NotFoundException('Event Seat not found');
+    const result = await this.eventSeatModel.bulkWrite(operations);
+
+    if (result.modifiedCount === 0) {
+      throw new NotFoundException('No matching Event Seats were updated');
     }
-    return bookSeat;
+    return result;
   }
 
   async findAll(filterDto: EventSeatQueryDto): Promise<EventSeat[]> {
@@ -161,14 +158,20 @@ export class EventSeatService {
     return this.eventSeatModel.find(filter).exec();
   }
 
-  async getBookings(filterDto: EventSeatQueryDto, req: RequestWithUser): Promise<EventSeat[]> {
+  async getBookings(
+    filterDto: EventSeatQueryDto,
+    req: RequestWithUser,
+  ): Promise<EventSeat[]> {
     const filter: Record<string, any> = {};
     for (const key in filterDto) {
       if (filterDto[key] !== undefined) {
         filter[key] = filterDto[key];
       }
     }
-    return this.eventSeatModel.find({ ...filter, userId: req.user.userId }).populate('companyId eventScheduleId eventId').exec();
+    return this.eventSeatModel
+      .find({ ...filter, userId: req.user.userId })
+      .populate('companyId eventScheduleId eventId')
+      .exec();
   }
 
   async findOne(id: string): Promise<EventSeat> {

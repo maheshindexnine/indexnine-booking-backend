@@ -6,11 +6,13 @@ import {
   IsBoolean,
   IsNumber,
   IsOptional,
+  IsArray,
 } from 'class-validator';
 
 export class BookEventSeatDto {
-  @IsMongoId()
-  id: string;
+  @IsNotEmpty()
+  @IsArray()
+  ids: string[];
 
   @IsBoolean()
   booked: boolean;
