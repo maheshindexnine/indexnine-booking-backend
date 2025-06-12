@@ -57,6 +57,7 @@ export class EventScheduleService {
       return {
         ...userSeat,
         capacity: matchingCompanySeat.capacity,
+        color: matchingCompanySeat.color,
       };
     });
 
@@ -87,7 +88,6 @@ export class EventScheduleService {
     savedEvent: EventSchedule,
     enrichedSeats: any[],
   ): Promise<void> {
-    console.log(savedEvent, ' savedEventsavedEventsavedEventsavedEvent');
 
     const message = {
       // @ts-ignore
@@ -97,7 +97,6 @@ export class EventScheduleService {
       eventId: savedEvent.eventId.toString(),
       seats: enrichedSeats,
     };
-    console.log('called here start', message);
 
     // Send the message to Kafka's 'create-seats' topic
     await this.kafkaClient.emit('create-seats', message);
@@ -108,6 +107,7 @@ export class EventScheduleService {
     seatTypes: any[],
     savedEvent: EventSchedule,
   ): Promise<void> {
+    
     for (const seatType of seatTypes) {
       for (let i = 1; i <= seatType.capacity; i++) {
         const rowIndex = Math.floor((i - 1) / 10); // 0 for 1–10, 1 for 11–20, etc.
@@ -123,6 +123,7 @@ export class EventScheduleService {
           seatName: seatType.name,
           price: seatType.price,
           row: rowKey, // ✅ added row key
+          color: seatType.color,
         };
 
         // Create the seat asynchronously without awaiting

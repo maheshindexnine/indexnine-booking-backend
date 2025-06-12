@@ -18,6 +18,10 @@ class SeatDto {
   @IsNotEmpty()
   @IsNumber()
   capacity: number;
+
+  @IsNotEmpty()
+  @IsString()
+  color: string;
 }
 
 export class CreateCompanyDto {

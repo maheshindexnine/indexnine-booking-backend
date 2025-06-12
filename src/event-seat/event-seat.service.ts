@@ -49,6 +49,7 @@ export class EventSeatService {
           seatName: seatType.name,
           price: seatType.price,
           row: rowKey,
+          color: seatType.color,
         };
 
         // Send a Kafka message to create this individual seat
@@ -84,6 +85,7 @@ export class EventSeatService {
       price,
       eventId,
       row,
+      color,
     } = message;
 
     const seatDto: CreateEventSeatDto = {
@@ -95,6 +97,7 @@ export class EventSeatService {
       seatName,
       row,
       price,
+      color,
     };
 
     // Create the seat in the database

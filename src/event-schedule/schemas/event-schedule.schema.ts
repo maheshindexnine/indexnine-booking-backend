@@ -19,11 +19,11 @@ export class EventSchedule {
   date: Date;
 
   @Prop({
-    type: [{ name: String, price: Number, capacity: Number }],
+    type: [{ name: String, price: Number, capacity: Number, color: String }],
     required: true,
     validate: [(val) => val.length > 0, 'At least one seat type is required'],
   })
-  seatTypes: { name: string; price: number }[];
+  seatTypes: { name: string; price: number; capacity: number; color: string }[];
 
   @Prop({ type: Date, default: Date.now })
   createdAt: Date;

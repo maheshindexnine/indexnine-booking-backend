@@ -31,6 +31,9 @@ export class EventSeat {
   seatName: string;
 
   @Prop({ required: true })
+  color: string;
+
+  @Prop({ required: true })
   price: number;
 
   @Prop({ default: false, required: false })

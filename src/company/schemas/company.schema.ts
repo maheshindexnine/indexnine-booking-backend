@@ -11,6 +11,9 @@ export class Seat {
 
   @Prop({ required: true })
   capacity: number;
+
+  @Prop({ required: true })
+  color: string;
 }
 
 @Schema({ timestamps: false })

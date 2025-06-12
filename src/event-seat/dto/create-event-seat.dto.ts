@@ -35,4 +35,8 @@ export class CreateEventSeatDto {
 
   @IsNumber()
   price: number;
+
+  @IsString()
+  @IsNotEmpty()
+  color: string;
 }
